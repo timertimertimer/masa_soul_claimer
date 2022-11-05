@@ -38,13 +38,17 @@ def claim_name(name):
                 print(name, str(e))
                 return
         except ValueError as e:
-            print(name, str(e))
-            return
+            if str(e) == "{'code': -32000, 'message': 'replacement transaction underpriced'}":
+                transaction['nonce'] += 1
+            else:
+                print(name, str(e))
+            continue
 
 
 with open("names.txt", "r") as f:
     names = [row.strip() for row in f]
 
-for name in names:
-    claim_name(name)
-    print(f"Balance is: {web3.eth.getBalance(address) / (10 ** 18)} GETH")
+with Pool(processes=len(names)) as executor:
+    executor.map(claim_name, names)
+
+print(f"Balance is: {web3.eth.getBalance(address) / (10 ** 18)} GETH")
